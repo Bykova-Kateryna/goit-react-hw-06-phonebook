@@ -1,4 +1,5 @@
-import PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
+import { deleteContact } from '../../redux/slice';
 
 import {
   ContactListSection,
@@ -6,28 +7,41 @@ import {
   DeleteBtn,
 } from './ContactList.styled';
 
-export const ContactList = ({ array, deleteNumber }) => {
+export const ContactList = () => {
+  const contacts = useSelector(state => state.contacts);
+  const filter = useSelector(state => state.filter);
+  const dispatch = useDispatch();
+
+  const filterContacts = () => {
+    if (!filter) {
+      return contacts;
+    }
+
+    const normalizedNameFilter = filter.toLocaleLowerCase();
+    const filteredName = contacts.filter(({ name }) => {
+      const normalizedName = name.toLocaleLowerCase();
+      const filterResult = normalizedName.includes(normalizedNameFilter);
+      return filterResult;
+    });
+    return filteredName;
+  };
+
   return (
     <ContactListSection>
-      {array.map(item => (
-        <ContactListItem key={item.id}>
-          {item.name}: {item.number}
-          <DeleteBtn type="button" onClick={() => deleteNumber(item.id)}>
-            Delete
-          </DeleteBtn>
-        </ContactListItem>
-      ))}
+      {contacts.length !== 0 &&
+        filterContacts().map(item => (
+          <ContactListItem key={item.id}>
+            {item.name}: {item.number}
+            <DeleteBtn
+              type="button"
+              onClick={() => {
+                dispatch(deleteContact(item.id));
+              }}
+            >
+              Delete
+            </DeleteBtn>
+          </ContactListItem>
+        ))}
     </ContactListSection>
   );
-};
-
-ContactList.propTypes = {
-  array: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    })
-  ),
-  deleteNumber: PropTypes.func,
 };

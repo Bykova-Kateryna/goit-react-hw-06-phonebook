@@ -1,4 +1,5 @@
-import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
+import { filterContact } from '../../redux/slice';
 import { nanoid } from 'nanoid';
 import {
   FilterSection,
@@ -8,7 +9,11 @@ import {
 
 const contactFindId = nanoid();
 
-export const Filter = ({ search, changeValue }) => {
+export const Filter = () => {
+  const dispatch = useDispatch();
+  const handleChange = event => {
+    dispatch(filterContact(event.currentTarget.value));
+  };
   return (
     <FilterSection>
       <FilterSectionLabel htmlFor={contactFindId}>
@@ -18,14 +23,8 @@ export const Filter = ({ search, changeValue }) => {
         type="text"
         name="filter"
         id={contactFindId}
-        value={search}
-        onChange={changeValue}
+        onChange={handleChange}
       />
     </FilterSection>
   );
-};
-
-Filter.propTypes = {
-  search: PropTypes.string.isRequired,
-  changeValue: PropTypes.func.isRequired,
 };

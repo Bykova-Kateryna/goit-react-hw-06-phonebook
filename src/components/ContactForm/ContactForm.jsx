@@ -1,6 +1,6 @@
 import React from 'react';
-import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from '../../redux/slice';
 import { nanoid } from 'nanoid';
 import { Report } from 'notiflix/build/notiflix-report-aio';
 import {
@@ -11,53 +11,38 @@ import {
   FormBtn,
 } from './ContactForm.stysed';
 
-function PhoneBookForm({ dataArr, submitData }) {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+function PhoneBookForm() {
+  const dispatch = useDispatch();
+  const contacts = useSelector(state => state.contacts);
 
   const contactNameId = nanoid();
   const contactTellId = nanoid();
 
-  const handleChange = event => {
-    switch (event.currentTarget.name) {
-      case 'name':
-        setName(event.currentTarget.value);
-        break;
-
-      case 'number':
-        setNumber(event.currentTarget.value);
-        break;
-
-      default:
-        return;
-    }
-  };
-
   const findName = name => {
-    return dataArr.find(arr => {
-      const nameInArr = arr.name.toLocaleLowerCase();
+    return contacts.find(contact => {
+      const nameInContacts = contact.name.toLocaleLowerCase();
       const newName = name.toLocaleLowerCase();
-      return nameInArr === newName;
+      return nameInContacts === newName;
     });
   };
 
   const handleSubmit = event => {
     event.preventDefault();
+    const form = event.target;
     const addName = {
       id: nanoid(),
-      name: name,
-      number: number,
+      name: form.elements.name.value,
+      number: form.elements.number.value,
     };
-    if (findName(name)) {
+    if (findName(form.elements.name.value)) {
       return Report.failure(
         'Something went wrong',
         'This name is already in the contact list!',
         'Okay'
       );
     } else {
-      submitData(addName);
-      setName('');
-      setNumber('');
+      dispatch(addContact(addName));
+      form.reset();
     }
   };
 
@@ -73,8 +58,6 @@ function PhoneBookForm({ dataArr, submitData }) {
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
             id={contactNameId}
-            value={name}
-            onChange={handleChange}
           />
         </div>
         <div>
@@ -86,8 +69,6 @@ function PhoneBookForm({ dataArr, submitData }) {
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
             id={contactTellId}
-            value={number}
-            onChange={handleChange}
           />
         </div>
         <FormBtn type="submit">Add contact</FormBtn>
@@ -97,14 +78,3 @@ function PhoneBookForm({ dataArr, submitData }) {
 }
 
 export default PhoneBookForm;
-
-PhoneBookForm.propTypes = {
-  submitData: PropTypes.func.isRequired,
-  dataArr: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    })
-  ),
-};
